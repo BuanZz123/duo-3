@@ -26,6 +26,18 @@
             font-size: 16px;
             cursor: pointer;
         }
+        #notification {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -58,7 +70,8 @@
     <button onclick="copyToClipboard()">Copy</button>
     <button onclick="downloadList()">Download</button>
     <table id="output"></table>
-    
+    <div id="notification"></div>
+
     <script>
         function generateCard(type) {
             let bin = document.getElementById("bin").value;
@@ -66,15 +79,15 @@
             let expYear = document.getElementById("expYear").value || (Math.floor(Math.random() * 6) + 2025);
             let cvv = document.getElementById("cvv").value || Math.floor(100 + Math.random() * 900);
             let quantity = Math.min(parseInt(document.getElementById("quantity").value), 500);
-            
+
             if (!bin) {
                 bin = type === 'visa' ? '4' : '5' + Math.floor(Math.random() * 5 + 1);
             }
-            
+
             let result = "";
             let table = document.getElementById("output");
             table.innerHTML = "<tr><th>Card Number</th><th>Expiry</th><th>CVV</th></tr>";
-            
+
             for (let i = 0; i < quantity; i++) {
                 let cardNumber = bin;
                 while (cardNumber.length < 15) {
@@ -82,7 +95,7 @@
                 }
                 cardNumber += calculateLuhnChecksum(cardNumber);
                 result += `${cardNumber}|${expMonth}|${expYear}|${cvv}\n`;
-                
+
                 let row = table.insertRow();
                 row.insertCell(0).innerText = cardNumber;
                 row.insertCell(1).innerText = `${expMonth}/${expYear}`;
@@ -90,14 +103,14 @@
             }
             document.getElementById("output").dataset.cards = result;
         }
-        
+
         function calculateLuhnChecksum(number) {
             let sum = 0;
             let alternate = true;
-            
+
             for (let i = number.length - 1; i >= 0; i--) {
                 let n = parseInt(number[i], 10);
-                
+
                 if (alternate) {
                     n *= 2;
                     if (n > 9) n -= 9;
@@ -107,27 +120,38 @@
             }
             return (sum * 9) % 10;
         }
-        
+
         function copyToClipboard() {
             let text = document.getElementById("output").dataset.cards || "";
-            if (!text) return alert("No data to copy");
-            
+            if (!text) return showNotification("No data to copy");
+
             navigator.clipboard.writeText(text).then(() => {
-                alert("Copied to clipboard");
+                showNotification("Copied to clipboard");
             }, () => {
-                alert("Failed to copy");
+                showNotification("Failed to copy");
             });
         }
-        
+
         function downloadList() {
             let text = document.getElementById("output").dataset.cards || "";
-            if (!text) return alert("No data to download");
-            
+            if (!text) return showNotification("No data to download");
+
             let blob = new Blob([text], { type: "text/plain" });
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = "card_list.txt";
             link.click();
+
+            showNotification("Download started");
+        }
+
+        function showNotification(message) {
+            let notification = document.getElementById("notification");
+            notification.innerText = message;
+            notification.style.display = "block";
+            setTimeout(() => {
+                notification.style.display = "none";
+            }, 3000);
         }
     </script>
 </body>
