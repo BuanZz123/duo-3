@@ -102,7 +102,7 @@
                     cardNumber += Math.floor(Math.random() * 10);
                 }
                 cardNumber += calculateLuhnChecksum(cardNumber);
-                result += `${cardNumber} | ${expMonth}/${expYear} | ${cvv}\n`;
+                result += `${cardNumber}|${expMonth}|${expYear}|${cvv}\n`;
             }
             document.getElementById("output").innerText = result;
         }
