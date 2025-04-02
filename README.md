@@ -9,42 +9,26 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
         }
         button {
             padding: 10px 20px;
+            margin: 10px;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.3s ease-in-out;
-        }
-        button:hover {
-            transform: scale(1.1);
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            white-space: pre-line;
-        }
-        #loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            transition: opacity 0.5s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div id="loading">Loading...</div>
     <h2>Random Credit Card Generator</h2>
     <label>BIN (4-16 digits, optional): <input type="text" id="bin" maxlength="16"></label><br>
     <label>Expiry Month: 
@@ -71,19 +55,11 @@
     <label>Quantity (max 500): <input type="number" id="quantity" min="1" max="500" value="1"></label><br><br>
     <button onclick="generateCard('visa')">Generate Visa</button>
     <button onclick="generateCard('mastercard')">Generate Mastercard</button>
-    <div id="output"></div>
-
+    <button onclick="copyToClipboard()">Copy</button>
+    <button onclick="downloadList()">Download</button>
+    <table id="output"></table>
+    
     <script>
-        window.onload = function() {
-            setTimeout(() => {
-                document.getElementById("loading").style.opacity = "0";
-                setTimeout(() => {
-                    document.getElementById("loading").style.display = "none";
-                    document.body.style.opacity = "1";
-                }, 500);
-            }, 5000);
-        };
-        
         function generateCard(type) {
             let bin = document.getElementById("bin").value;
             let expMonth = document.getElementById("expMonth").value || (Math.floor(Math.random() * 12) + 1).toString().padStart(2, '0');
@@ -96,6 +72,9 @@
             }
             
             let result = "";
+            let table = document.getElementById("output");
+            table.innerHTML = "<tr><th>Card Number</th><th>Expiry</th><th>CVV</th></tr>";
+            
             for (let i = 0; i < quantity; i++) {
                 let cardNumber = bin;
                 while (cardNumber.length < 15) {
@@ -103,8 +82,13 @@
                 }
                 cardNumber += calculateLuhnChecksum(cardNumber);
                 result += `${cardNumber}|${expMonth}|${expYear}|${cvv}\n`;
+                
+                let row = table.insertRow();
+                row.insertCell(0).innerText = cardNumber;
+                row.insertCell(1).innerText = `${expMonth}/${expYear}`;
+                row.insertCell(2).innerText = cvv;
             }
-            document.getElementById("output").innerText = result;
+            document.getElementById("output").dataset.cards = result;
         }
         
         function calculateLuhnChecksum(number) {
@@ -122,6 +106,28 @@
                 alternate = !alternate;
             }
             return (sum * 9) % 10;
+        }
+        
+        function copyToClipboard() {
+            let text = document.getElementById("output").dataset.cards || "";
+            if (!text) return alert("No data to copy");
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard");
+            }, () => {
+                alert("Failed to copy");
+            });
+        }
+        
+        function downloadList() {
+            let text = document.getElementById("output").dataset.cards || "";
+            if (!text) return alert("No data to download");
+            
+            let blob = new Blob([text], { type: "text/plain" });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "card_list.txt";
+            link.click();
         }
     </script>
 </body>
