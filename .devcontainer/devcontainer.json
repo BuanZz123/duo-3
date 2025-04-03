@@ -1,0 +1,11 @@
+{
+  "name": "Enterprise VPS",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "hostRequirements": {
+    "cpus": 16,
+    "memory": "32gb",
+    "storage": "256gb"
+  },
+  "postCreateCommand": "apt update && apt install -y openssh-server sudo && service ssh start",
+  "remoteUser": "root"
+}
